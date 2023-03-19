@@ -1,0 +1,247 @@
+//create the variables, setting the default level to 1, the score to 0, the alternate scores to 20, and creating the 2 player squares in their starting locations, with temporary variables to be used later.
+let level = 1
+let square1 = {
+  y : 0,
+  x : 5,
+  tempy : 0,
+  tempx : 5
+}
+let levelSetX = 5
+let levelSetY = 5
+let square2 = {
+  y : 5,
+  x : 0,
+  tempy : 5,
+  tempx : 0
+}
+let ySet = 0
+let settings = false;
+//create the checkbox and button variables
+let checkbox;
+let button1;
+//create the arrays to hold the blocked and skipped squares, starting without any data but allowing for multiple
+let blockedY = [];
+let blockedX = [];
+let skippedY = [];
+let skippedX = [];
+let header;
+let p1;
+function setup() {
+  //create a large canvas allowing for text, and set all rectangles so their main point is centered, then create the header, checkbox, restart button, and introductory paragraph, with the restart button pointing to the restart function, and the checkbox lowering the score value so it's easier for the player.
+  createCanvas(400, 600);
+//  rectMode(CENTER);
+  button1 = createButton("reset");
+  button1.position(250, 500);
+  button1.mousePressed(reset);
+  button2 = createButton("Instructions");
+  button2.position(160, 500);
+  button2.mousePressed(Set);
+  button3 = createButton("Skip Level");
+  button3.position(160, 525);
+  button3.mousePressed(skipLevel);
+}
+function draw() {
+  //create a background, set the original blocked array to its starting variable as long as the level stays at 1, and then set the score to tick down based on the number of moves that have been registered. make a short paragraph to show the score to the player
+  background(220);
+  if (level == 1){
+    levelSetX=8;
+    levelSetY=8;
+    blockedY = [5];
+    blockedX = [5];
+  }
+  ySet=400*((levelSetY)/levelSetX)+50
+  button1.position(250, 505);
+  button2.position(160, 505);
+  button3.position(160, 530);
+  textFont('Arial');
+  textStyle(BOLD);
+  fill(0);
+  textStyle(NORMAL);
+  textSize(30);
+  text(`Level ${level}`,20,40);
+  textSize(15);
+  text('Welcome to my game! Use the arrow keys to move the boxes, and finish the level by pushing the green boxes into the same spot! If you press R or the reset button, you restart the level.', 10, 450, 400);
+  //if the level isn't 3, create all the squares, using two for loops nested inside eachother each repeating 10 times, to create 100 squares (110 in the second level)
+  if(level>0 && settings==false){
+    for(let i = 0; i<levelSetX; i++){
+      for(let j = 0; j<levelSetY; j++){
+      //set the filled variable to false, to keep track of whether the current square is the blocked square or a player square. create a for loop, once for each square that's blocked and if it is a player square, fill it green. if the square is the blocked square, fill it black, and set the filled variable to false to keep track of it so it's not colored over. if the square is neither a blocked square or a player square, fill it based on the current loop changing based on location, to create a gradient of square colors
+        let isFilled = false;
+        let isSkipped = false;
+        for(let k = 0; k<blockedY.length; k++){
+          if(square1.x == i && square1.y == j){
+            fill(0,200,0);
+          }
+          else if(square2.x == i && square2.y == j){
+            fill(0,200,0);
+          }
+          else if (blockedY[k]==j&&blockedX[k]==i){
+            fill(0);
+            isFilled = true;
+          }
+          else if (skippedY[k]==j&&skippedX[k]==i){
+          isSkipped = true;
+          }
+          else if (isFilled == false){
+            fill(255-200*j/levelSetY,255-200*i/levelSetX,255);
+          }
+        }
+        //and finally after colors are done, fill the square based on the array
+        noStroke()
+      if(isSkipped == false){
+        square(400*(i/levelSetX)+5,400*(j/levelSetX)+(50),(300/levelSetX),(100/levelSetX));
+        }
+      }
+    }
+  }
+  else if (settings == true){
+    fill(100)
+    stroke(0)
+    rect(20,50,360,390)
+    for(let i = 0; i<5; i++){
+      
+    }
+  }
+  noStroke()
+  
+}
+//when a key is pressed, first store the squares' current values for if they need to be pushed back
+function keyPressed(){
+  square1.tempx = square1.x;
+  square2.tempx = square2.x;
+  square1.tempy = square1.y;
+  square2.tempy = square2.y;
+  //if the left arrow was pushed, move both squares to the left, and do the same for the other three arrow keys.
+  switch(keyCode){
+    case LEFT_ARROW:
+      square1.x-=1;
+      square2.x-=1;
+    break
+    case RIGHT_ARROW:
+      square1.x+=1;
+      square2.x+=1;
+    break
+    case UP_ARROW:
+      square1.y-=1;
+      square2.y-=1;
+    break
+    case DOWN_ARROW:
+      square1.y+=1;
+      square2.y+=1;
+    break
+  }
+  for(let k = 0; k<skippedY.length; k++){
+    if(square1.y == skippedY[k] && square1.x == skippedX[k]){
+      square1.y = (square1.y*2)-square1.tempy;
+      square1.x = (square1.x*2)-square1.tempx;
+    }
+    if(square2.y == skippedY[k] && square2.x == skippedX[k]){
+      square2.y = (square2.y*2)-square2.tempy;
+      square2.x = (square2.x*2)-square2.tempx;
+    }
+  }
+  //if any of the squares goes past the boundaries, put it back on the other side. the boundaries change, so it has to account for that.
+  square1.y=(square1.y+levelSetY)%levelSetY
+  square1.x=(square1.x+levelSetX)%levelSetX
+  square2.y=(square2.y+levelSetY)%levelSetY
+  square2.x=(square2.x+levelSetX)%levelSetX
+  //create a for loop, checking for each blocked square. if a player square is pushed onto a blocked square, push it back to the stored values.
+  for(let k = 0; k<blockedY.length; k++){
+    if(square1.y == blockedY[k] && square1.x == blockedX[k]){
+      square1.y = square1.tempy;
+      square1.x = square1.tempx;
+    }
+    if(square2.y == blockedY[k] && square2.x == blockedX[k]){
+      square2.y = square2.tempy;
+      square2.x = square2.tempx;
+    }
+  }
+  //if the pressed key is R, execute the reset function.
+  if(key == 'r'){
+  reset()
+  }
+      //once level completion is met and the 2 squares are in the same place, create a new level, setting all variables back to 0, creating a new square, and putting the squares back in their original spots.
+  if(square1.x==square2.x&&square1.y==square2.y){
+    skipLevel()
+  }
+}
+//when you need to reset, use the reset function and reset all the variables to their original values, accounting for the checkbox and possible extra score.
+function reset(){    
+  level = level - 1;
+  skipLevel()
+}
+function Set(){
+  settings=!settings
+}
+function skipLevel(){
+  level+=1
+  switch(level){
+    case 1:
+      blockedX = [5];
+      blockedY = [5];
+      square1.x=5;
+      square1.y=0;
+      square2.x=0;
+      square2.y=5;
+    break
+    case 2:
+      blockedX = [5,0];
+      blockedY = [5,5];
+      square1.x=0;
+      square1.y=4;
+      square2.x=5;
+      square2.y=4;
+      levelSetX=9;
+    break
+    case 3:
+      levelSetX=4
+      levelSetY=3
+      blockedX = [0, 1, 2];
+      blockedY = [1, 1, 1];
+      square1.x=0;
+      square1.y=0;
+      square2.x=1;
+      square2.y=2;
+    break
+    case 4:
+      blockedX = [0, 2, 4, 6, 0, 2, 4, 6, 6];
+      blockedY = [0, 0, 0, 0, 2, 2, 2, 2, 1];
+      square1.x=1;
+      square1.y=3;
+      square2.x=3;
+      square2.y=1;
+      levelSetX=7;
+      levelSetY=4;
+    break
+    case 5:
+      blockedX=[1,1];
+      blockedY=[1,2];
+      square1.x=0;
+      square1.y=0;
+      square2.x=2;
+      square2.y=2;
+      levelSetX=3;
+      levelSetY=3;
+    break
+    case 6:
+      blockedX = [1];
+      blockedY = [0];
+      square1.x=0;
+      square1.y=0;
+      square2.x=0;
+      square2.y=1;
+      levelSetX=3;
+      levelSetY=2;
+    break
+    case 7:
+      blockedX = [1, 3];
+      blockedY = [0, 0];
+      square1.x=1;
+      square1.y=1;
+      square2.x=3;
+      square2.y=1;
+      levelSetX=5;
+      levelSetY=2;
+    break
+  }
+}
